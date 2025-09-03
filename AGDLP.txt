@@ -13,3 +13,46 @@ Read:GL-Buchhaltung
 Write:GL-Einkauf
 Full: Domänen-Admins
 
+Stellen wir uns vor, wir haben unseren DFS-Ordner \\ppedv.test\Daten\Projekte von vorhin und wir möchten der Marketing- 
+und der Entwicklungsabteilung unterschiedliche Rechte geben.
+
+Schritt 1: A → G (Accounts in Globale Gruppen)
+Zweck: Globale Gruppen bündeln Benutzer nach ihrer Funktion oder Abteilung im Unternehmen. 
+
+Sie beantworten die Frage: "WER sind diese Leute?"
+Aktion:
+Wir erstellen eine Globale Sicherheitsgruppe namens Marketing_Mitarbeiter_GG.
+Wir erstellen eine weitere Globale Sicherheitsgruppe namens Entwicklung_Mitarbeiter_GG.
+Wir packen alle Benutzerkonten der Marketing-Mitarbeiter (Anna, Bob) in die Gruppe Marketing_Mitarbeiter_GG.
+Wir packen alle Entwickler (Charlie, David) in die Gruppe Entwicklung_Mitarbeiter_GG.
+
+Schritt 2: G → DL (Globale Gruppen in Domänenlokale Gruppen)
+Zweck: Domänenlokale Gruppen definieren den Zugriff auf eine bestimmte Ressource. 
+
+Sie beantworten die Frage: "WAS darf man hier tun?" Ihr Name sollte daher immer die Ressource und die Berechtigung widerspiegeln.
+Aktion:
+Wir erstellen eine Domänenlokale Sicherheitsgruppe namens Projekte_Ordner_Lesen_DLG.
+Wir erstellen eine weitere Domänenlokale Sicherheitsgruppe namens Projekte_Ordner_Schreiben_DLG.
+Jetzt verbinden wir die "WER"-Gruppen mit den "WAS"-Gruppen:
+Wir fügen die Globale Gruppe Marketing_Mitarbeiter_GG als Mitglied zur Domänenlokalen Gruppe Projekte_Ordner_Lesen_DLG hinzu.
+Wir fügen die Globale Gruppe Entwicklung_Mitarbeiter_GG als Mitglied zur Domänenlokalen Gruppe Projekte_Ordner_Schreiben_DLG hinzu.
+
+Schritt 3: DL → P (Domänenlokale Gruppen erhalten Berechtigungen)
+Zweck: Der letzte Schritt. Wir gehen zur eigentlichen Ressource (dem Ordner) und vergeben die NTFS-Berechtigungen.
+Aktion:
+
+Wir navigieren zum physischen Ordner auf dem Server (z.B. C:\DFSData\Projects).
+Wir öffnen die Sicherheitseinstellungen (Rechtsklick → Eigenschaften → Sicherheit).
+Wir fügen die Gruppe Projekte_Ordner_Lesen_DLG hinzu und geben ihr nur die NTFS-Berechtigungen "Lesen, Ausführen".
+Wir fügen die Gruppe Projekte_Ordner_Schreiben_DLG hinzu und geben ihr die NTFS-Berechtigungen "Ändern" (Lesen, Schreiben, Löschen).
+WICHTIG: Auf dem Ordner selbst tauchen niemals einzelne Benutzer oder globale Gruppen auf! Nur die domänenlokalen Gruppen.
+Das Ergebnis im Praxistest
+
+Szenario 1: Ein neuer Entwickler kommt.
+Alter Weg: Sie müssten zu 20 verschiedenen Projektordnern gehen und sein Benutzerkonto überall manuell hinzufügen.
+AGDLP-Weg: Sie fügen sein Benutzerkonto zur globalen Gruppe Entwicklung_Mitarbeiter_GG hinzu. Fertig. 
+Er hat sofort die korrekten Berechtigungen auf alle Ressourcen, die für Entwickler freigegeben sind.
+
+Szenario 2: Anna aus dem Marketing wechselt in die Entwicklung.
+Alter Weg: Ein Albtraum. Sie müssen ihre alten Berechtigungen auf allen Marketing-Ordnern entfernen und die neuen auf allen Entwickler-Ordnern hinzufügen. Fehler sind vorprogrammiert.
+AGDLP-Weg: Sie entfernen Annas Konto aus der Gruppe Marketing_Mitarbeiter_GG und fügen es zur Gruppe Entwicklung_Mitarbeiter_GG hinzu. Fertig. Ein paar Klicks, keine Fehlerquelle.
